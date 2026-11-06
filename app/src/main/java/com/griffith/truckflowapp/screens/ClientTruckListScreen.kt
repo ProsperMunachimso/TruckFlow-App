@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.griffith.truckflowapp.BookingDetailsActivity
 import com.griffith.truckflowapp.ui.theme.TruckFlowAppTheme
 
 // Placeholder for the Client dashboard. For Milestone 1 it only needs to
@@ -74,6 +75,19 @@ fun ClientTruckListScreen(modifier: Modifier = Modifier) {
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Open Pickup Location in Maps")
+        }
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Explicit intent demo. I target a specific Activity in my app.
+        Button(
+            onClick = {
+                // An explicit intent names the exact class to launch.
+                val intent = Intent(context, BookingDetailsActivity::class.java)
+                context.startActivity(intent)
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("View Booking Details")
         }
     }
 }
