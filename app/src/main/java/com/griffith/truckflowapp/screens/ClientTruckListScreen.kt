@@ -23,8 +23,7 @@ import androidx.compose.ui.unit.dp
 import com.griffith.truckflowapp.BookingDetailsActivity
 import com.griffith.truckflowapp.ui.theme.TruckFlowAppTheme
 
-// Placeholder for the Client dashboard. For Milestone 1 it only needs to
-// demonstrate the implicit intent requirement, so I added a single button
+// This is the Client dashboard and for Milestone 1, i made it to only need demonstrate the implicit intent requirement, so I added a single button
 // that opens a hardcoded pickup location in Google Maps. The real truck
 // list will replace this once the repository and ViewModel exist in M2/M3.
 @Composable
@@ -78,10 +77,9 @@ fun ClientTruckListScreen(modifier: Modifier = Modifier) {
         }
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Explicit intent demo. I target a specific Activity in my app.
+        // Explicit intent demo. I targeted a specific Activity in my app.
         Button(
             onClick = {
-                // An explicit intent names the exact class to launch.
                 val intent = Intent(context, BookingDetailsActivity::class.java)
                 context.startActivity(intent)
             },

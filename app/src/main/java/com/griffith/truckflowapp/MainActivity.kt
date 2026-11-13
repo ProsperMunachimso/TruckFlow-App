@@ -18,12 +18,21 @@ import com.griffith.truckflowapp.screens.ClientTruckListScreen
 import com.griffith.truckflowapp.screens.RoleSelectionScreen
 import com.griffith.truckflowapp.ui.theme.TruckFlowAppTheme
 
+ /* MainActivity is the only Activity in the app apart from BookingDetailsActivity.
+ I used a single-Activity architecture because Compose Navigation is designed
+ around it,nstead of creatingg a new Activity for every screen, the NavHost
+ swaps composables in and out inside this one Acctivity. This avoids the cost
+ ofspinning up new Activities for every navigation and keeps the back stack
+ managed in one place.*/
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+            // I wrapped the whole app in TruckFlowAppTheme so colours especiall stay the same through every screen.
             TruckFlowAppTheme {
+                // Scaffold gives the app a standard layout skeleton with slots for a top bar, bottom bar, floating action button and content.
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     TruckFlowApp(modifier = Modifier.padding(innerPadding))
                 }
@@ -32,10 +41,12 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+// TruckFlowApp holds the navigation setup. I separated it from MainActivity so the navigation logic lives in its own composable
 @Composable
 fun TruckFlowApp(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
 
+    // NavHost is the container that displays whichever screen matches the current route. startDestination tells it which screen to show first when the app opens
     NavHost(
         navController = navController,
         startDestination = NavRoutes.ROLE_SELECTION,
@@ -51,7 +62,7 @@ fun TruckFlowApp(modifier: Modifier = Modifier) {
                 }
             )
         }
-
+        // This block defines the Client dashboard screen. When called NavHost swaps this composablein place of the role selection screen.
         composable(NavRoutes.CLIENT_TRUCKS) {
             ClientTruckListScreen()
         }
