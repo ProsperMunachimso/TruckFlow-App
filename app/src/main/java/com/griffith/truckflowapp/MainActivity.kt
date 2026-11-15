@@ -17,6 +17,7 @@ import com.griffith.truckflowapp.navigation.NavRoutes
 import com.griffith.truckflowapp.screens.ClientTruckListScreen
 import com.griffith.truckflowapp.screens.RoleSelectionScreen
 import com.griffith.truckflowapp.ui.theme.TruckFlowAppTheme
+import com.griffith.truckflowapp.screens.CreateBookingScreen
 
  /* MainActivity is the only Activity in the app apart from BookingDetailsActivity.
  I used a single-Activity architecture because Compose Navigation is designed
@@ -62,9 +63,21 @@ fun TruckFlowApp(modifier: Modifier = Modifier) {
                 }
             )
         }
-        // This block defines the Client dashboard screen. When called NavHost swaps this composablein place of the role selection screen.
+        // Client dashboard I edited this to now take a navigation callback so the "Book a
+        // Truck" button can route to the form.
         composable(NavRoutes.CLIENT_TRUCKS) {
-            ClientTruckListScreen()
+            ClientTruckListScreen(
+                onNavigateToCreateBooking = { //Kept the callback as a parameter (rather than passing navController) to preserve the hoisting pattern made with RoleSelectionScreen.
+                    navController.navigate(NavRoutes.CREATE_BOOKING)
+                }
+            )
+        }
+
+        // Booking form. popBackStack() returns to whichever screen was on top before navigation
+        composable(NavRoutes.CREATE_BOOKING) {
+            CreateBookingScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
     }
 }

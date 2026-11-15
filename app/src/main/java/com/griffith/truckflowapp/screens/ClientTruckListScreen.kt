@@ -4,10 +4,9 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -50,18 +49,22 @@ import androidx.compose.ui.unit.dp
 import com.griffith.truckflowapp.BookingDetailsActivity
 import com.griffith.truckflowapp.ui.theme.SuccessGreen
 import com.griffith.truckflowapp.ui.theme.TruckFlowAppTheme
-
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.material3.FilterChip
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 // DashboardMetrics groups the four summary values displayed at the top of the client screen.
 // Keeping these values in one data class makes the metric-card section easier to update
 // when data is eventually loaded from the existing TruckFlow web backend.
-// RecentBooking represents the information needed for one booking card.
+
 data class DashboardMetrics(
     val activeShipments: Int,
     val completedDeliveries: Int,
     val labourRequestsPending: Int,
     val totalSpend: Double
 )
-
+// RecentBooking represents the information needed for one booking card.
 data class RecentBooking(
     val id: String,
     val pickup: String,
@@ -102,15 +105,25 @@ private val sampleBookings = listOf(
 // list of cards because a full-width table is difficult to read on a phone.
 // This screen currently demonstrates the interface using sample data.
 @Composable
-fun ClientTruckListScreen(modifier: Modifier = Modifier) {
+fun ClientTruckListScreen(
+    onNavigateToCreateBooking: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     // The Android Context is required to launch external apps and Activities from Compose button click handlers.
     val context = LocalContext.current
 
     // I used the fixed sample data while the mobile app is not connected to the API.
-    // remember retains the same references across recompositions, but these values
-    // are already file-level immutable objects and do not represent mutable UI state.
+    // I used remember because it retains the same references across recompositions.
     val metrics = remember { sampleMetrics }
     val bookings = remember { sampleBookings }
+
+    var selectedFilter by remember { mutableStateOf<BookingStatus?>(null) } // This tracks the currently selected status filter. null = "All" (no filter).
+
+    val visibleBookings = if (selectedFilter == null) {
+        bookings
+    } else {
+        bookings.filter { it.status == selectedFilter }
+    }
 
     // I used LazyColumn to build a vertically scrolling screen and composes list content as needed.
     LazyColumn(
@@ -199,7 +212,7 @@ fun ClientTruckListScreen(modifier: Modifier = Modifier) {
                 )
                 // Primary action visually emphasised using a filled Button.
                 Button(
-                    onClick = {  },
+                    onClick = onNavigateToCreateBooking,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Icon(Icons.Filled.AddCircle, contentDescription = null)
@@ -276,25 +289,47 @@ fun ClientTruckListScreen(modifier: Modifier = Modifier) {
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(vertical = 4.dp)
+                ) {
+                    item {
+                        FilterChip(
+                            selected = selectedFilter == null,
+                            onClick = { selectedFilter = null },
+                            label = { Text("All") }
+                        )
+                    }
+                    items(BookingStatus.entries) { status ->
+                        FilterChip(
+                            selected = selectedFilter == status,
+                            onClick = { selectedFilter = status },
+                            label = { Text(status.label) }
+                        )
+                    }
+                }
             }
         }
 
-        // Display an empty-state message if there are no bookings. Otherwise,
-        // items(bookings) creates a reusable RecentBookingCard for each entry.
-        // This keeps the screen responsive as the number of bookings grows.
+        // Display an empty-state message if there are no bookings.
         // The current list is fixed sample data, so no live updates occur yet.
-        if (bookings.isEmpty()) {
+        if (visibleBookings.isEmpty()) {
             item {
                 Text(
-                    text = "No bookings yet. Tap 'Book a Truck' to create one.",
+                    text = if (selectedFilter == null) { //Checks to see if there have been bookings made in the past
+                        "No bookings yet. Tap 'Book a Truck' to create one."
+                    } else {
+                        "No ${selectedFilter?.label} bookings."
+                    },
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(vertical = 12.dp)
                 )
             }
         } else {
-            items(bookings) { booking ->
-                RecentBookingCard(booking = booking)
+            items(visibleBookings) { booking -> RecentBookingCard(booking = booking) // This creates a reusable RecentBookingCard for each entry.
             }
         }
 
@@ -435,7 +470,7 @@ private fun StatusChip(status: BookingStatus) {
         BookingStatus.DELIVERED -> SuccessGreen
         BookingStatus.CANCELLED -> MaterialTheme.colorScheme.onErrorContainer
     }
-    // A rounded Surface acts as a compact, non-interactive status label.
+    // I used a rounded Surface because it acts as a compact, non-interactive status label.
     // Padding around the text gives it the appearance of a small pill.
     Surface(
         shape = RoundedCornerShape(12.dp),
@@ -458,6 +493,6 @@ private fun StatusChip(status: BookingStatus) {
 @Composable
 private fun ClientTruckListScreenPreview() {
     TruckFlowAppTheme {
-        ClientTruckListScreen()
+        ClientTruckListScreen(onNavigateToCreateBooking = {})
     }
 }
