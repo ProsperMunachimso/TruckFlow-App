@@ -9,24 +9,24 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 
-// Exposes the repository's Flow as a StateFlow so the Compose screen
-// can collect it with collectAsStateWithLifecycle and get a stable
-// current value plus automatic lifecycle handling.
-//
-// The default constructor takes MockTrackingRepository so ViewModel can
-// be instantiated without a factory (required for Compose's viewModel()).
-// Tests can pass a fake repository by hand.
+// This class is for managing the shipment tracking data that is displayed
+// on the Track Shipment screen. I used a ViewModel to separate the tracking
+// logic from the user interface, so the screen only focuses on displaying
+// the information rather than managing where the data comes from.
 class TrackingViewModel(
     private val repository: TrackingRepository = MockTrackingRepository()
 ) : ViewModel() {
 
+    // This function is for tracking a specific booking using its booking ID.
+    // It gets the shipment updates from the repository and converts the
+    // Flow into a StateFlow so the UI can observe the latest information.
     fun track(bookingId: String): StateFlow<ShipmentTracking?> =
         repository.observeShipment(bookingId).stateIn(
             scope = viewModelScope,
-            // WhileSubscribed(5000) keeps the flow alive for 5 seconds
-            // after the last collector leaves — so a rotation does not
-            // restart the simulation from step 0.
+            // I used WhileSubscribed(5000) to keep the tracking flow active
+            // for 5 seconds after the screen stops observing it. This helps
+            // prevent the simulation from restarting during short interruptions,
             started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = null
+            initialValue = null // The initial value is null because the shipment data has notbeen received yet.
         )
 }

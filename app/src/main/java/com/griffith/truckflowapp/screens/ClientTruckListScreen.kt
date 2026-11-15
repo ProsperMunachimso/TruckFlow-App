@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Assignment
@@ -34,7 +33,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -57,6 +55,7 @@ import androidx.compose.runtime.setValue
 import com.griffith.truckflowapp.model.BookingStatus
 import com.griffith.truckflowapp.model.DashboardMetrics
 import com.griffith.truckflowapp.model.RecentBooking
+import com.griffith.truckflowapp.screens.components.BookingStatusChip
 
 // Temporary dashboard figures used to test the interface without a server connection.
 // These are sample values, not totals calculated from the bookings shown below.
@@ -84,6 +83,7 @@ private val sampleBookings = listOf(
 fun ClientTruckListScreen(
     onNavigateToCreateBooking: () -> Unit,
     onNavigateToTrackShipment: (String) -> Unit,
+    onNavigateToMyBookings: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     // The Android Context is required to launch external apps and Activities from Compose button click handlers.
@@ -232,7 +232,7 @@ fun ClientTruckListScreen(
                 ) {
                     Icon(Icons.Filled.LocationOn, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Open Pickup in Maps (M1 demo)")
+                    Text("Open Pickup in Maps ")
                 }
                 // Explicit intent, open the app's Booking Details activity.
                 // Explicit Intent, names BookingDetailsActivity directly, so Android opens a specific screen within TruckFlow.
@@ -244,7 +244,7 @@ fun ClientTruckListScreen(
                 ) {
                     Icon(Icons.Filled.Assignment, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("View Booking Details (M1 demo)")
+                    Text("View Booking Details")
                 }
             }
         }
@@ -314,7 +314,7 @@ fun ClientTruckListScreen(
         // Footer action for the full booking history; navigation is not implemented.
         item {
             OutlinedButton(
-                onClick = {  },
+                onClick = {onNavigateToMyBookings()},
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 24.dp)
@@ -402,7 +402,7 @@ private fun RecentBookingCard(booking: RecentBooking, onTrack: (String) -> Unit)
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 // Render the booking status with a consistent reusable chip.
-                StatusChip(status = booking.status)
+                BookingStatusChip(status = booking.status)
             }
             Spacer(modifier = Modifier.height(6.dp))
             Text(
@@ -426,44 +426,6 @@ private fun RecentBookingCard(booking: RecentBooking, onTrack: (String) -> Unit)
     }
 }
 
-// StatusChip maps each BookingStatus enum value to a background and text colour.
-// Separate foreground/background colours help the label remain readable.
-// MaterialTheme container colours follow the active theme; delivered uses a
-// translucent success green. Text is retained so meaning is not colour-only.
-@Composable
-private fun StatusChip(status: BookingStatus) {
-    // Pick the chip background based on the current booking state.
-    val background = when (status) {
-        BookingStatus.PENDING -> MaterialTheme.colorScheme.secondaryContainer
-        BookingStatus.CONFIRMED -> MaterialTheme.colorScheme.primaryContainer
-        BookingStatus.IN_TRANSIT -> MaterialTheme.colorScheme.tertiaryContainer
-        BookingStatus.DELIVERED -> SuccessGreen.copy(alpha = 0.2f)
-        BookingStatus.CANCELLED -> MaterialTheme.colorScheme.errorContainer
-    }
-    // Choose a corresponding text colour for sufficient contrast.
-    val foreground = when (status) {
-        BookingStatus.PENDING -> MaterialTheme.colorScheme.onSecondaryContainer
-        BookingStatus.CONFIRMED -> MaterialTheme.colorScheme.onPrimaryContainer
-        BookingStatus.IN_TRANSIT -> MaterialTheme.colorScheme.onTertiaryContainer
-        BookingStatus.DELIVERED -> SuccessGreen
-        BookingStatus.CANCELLED -> MaterialTheme.colorScheme.onErrorContainer
-    }
-    // I used a rounded Surface because it acts as a compact, non-interactive status label.
-    // Padding around the text gives it the appearance of a small pill.
-    Surface(
-        shape = RoundedCornerShape(12.dp),
-        color = background
-    ) {
-        Text(
-            text = status.label,
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.SemiBold,
-            color = foreground,
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
-        )
-    }
-}
-
 // Android Studio preview renders the dashboard with the shared TruckFlow theme.
 // This helps inspect spacing and colours without launching the full application.
 // It does not verify navigation, Intents, or runtime interaction behaviour.
@@ -471,6 +433,6 @@ private fun StatusChip(status: BookingStatus) {
 @Composable
 private fun ClientTruckListScreenPreview() {
     TruckFlowAppTheme {
-        ClientTruckListScreen(onNavigateToCreateBooking = {}, onNavigateToTrackShipment = {})
+        ClientTruckListScreen(onNavigateToCreateBooking = {}, onNavigateToTrackShipment = {}, onNavigateToMyBookings = {})
     }
 }

@@ -1,3 +1,4 @@
+
 package com.griffith.truckflowapp.screens
 
 import androidx.compose.animation.core.animateFloatAsState
@@ -10,7 +11,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -38,8 +38,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -48,16 +46,9 @@ import com.griffith.truckflowapp.model.BookingStatus
 import com.griffith.truckflowapp.model.ShipmentTracking
 import com.griffith.truckflowapp.viewmodel.TrackingViewModel
 
-// Live tracking screen. Subscribes to the TrackingViewModel which exposes
-// a StateFlow of ShipmentTracking. As the mock repository emits a new
-// position every 1.5 seconds, this screen redraws with the truck icon
-// moving further along the route.
-//
-// The route visualisation is deliberately abstract (a horizontal line
-// with two city labels) rather than a real map, because drawing an
-// actual map would require the Google Maps SDK — an unnecessary
-// dependency for a mock track. In M3 with the real API, we would swap
-// this Box for a GoogleMap composable.
+// This screen is for displaying the tracking details of a shipment.
+// I used the TrackingViewModel to receive location and status updates
+// and show the truck's progress along its route.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TrackShipmentScreen(
@@ -65,22 +56,28 @@ fun TrackShipmentScreen(
     onNavigateBack: () -> Unit,
     viewModel: TrackingViewModel = viewModel()
 ) {
-    // collectAsStateWithLifecycle is the lifecycle-aware way to consume
-    // a StateFlow from Compose. It stops collection when the screen is
-    // in the background and resumes when it returns — no manual
-    // DisposableEffect needed.
+    // I used collectAsStateWithLifecycle so the screen automatically
+    // updates when the repository sends new tracking information.
     val tracking by viewModel.track(bookingId)
         .collectAsStateWithLifecycle()
 
+    // Scaffold provides the layout for the top bar and screen content.
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Track Shipment") },
+
+                // The back button returns the user to the previous screen.
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back"
+                        )
                     }
                 },
+
+                // I used the app's primary colours to keep the design consistent.
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     titleContentColor = MaterialTheme.colorScheme.onPrimary,
@@ -89,14 +86,16 @@ fun TrackShipmentScreen(
             )
         }
     ) { padding ->
+
+        // This Box holds either the loading indicator or tracking details.
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
         ) {
             if (tracking == null) {
-                // First frame before the StateFlow has emitted anything.
-                // Shows a spinner so the user knows the app is working.
+
+                // Show a loading indicator while waiting for the first update.
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
@@ -104,6 +103,9 @@ fun TrackShipmentScreen(
                     CircularProgressIndicator()
                 }
             } else {
+
+                // Once tracking data is available, display the shipment details.
+                // I made the content scrollable for smaller phone screens.
                 TrackingContent(
                     tracking = tracking!!,
                     modifier = Modifier
@@ -116,14 +118,20 @@ fun TrackShipmentScreen(
     }
 }
 
+// This function displays the booking information, tracking progress
+// and the truck's current coordinates.
 @Composable
-private fun TrackingContent(tracking: ShipmentTracking, modifier: Modifier = Modifier) {
+private fun TrackingContent(
+    tracking: ShipmentTracking,
+    modifier: Modifier = Modifier
+) {
+    // I used a Column to arrange the tracking cards vertically.
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
 
-        // ── Header card: booking ID + status chip ─────────
+        // This card displays the booking ID, route and current status.
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
@@ -131,6 +139,8 @@ private fun TrackingContent(tracking: ShipmentTracking, modifier: Modifier = Mod
             )
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
+
+                // I used a Row to place the booking ID and status side by side.
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -141,9 +151,14 @@ private fun TrackingContent(tracking: ShipmentTracking, modifier: Modifier = Mod
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+
+                    // Displays the current booking status.
                     StatusChip(status = tracking.status)
                 }
+
                 Spacer(modifier = Modifier.height(8.dp))
+
+                // Shows the pickup and delivery locations.
                 Text(
                     text = "${tracking.pickupLocation} → ${tracking.deliveryLocation}",
                     style = MaterialTheme.typography.headlineSmall,
@@ -152,7 +167,7 @@ private fun TrackingContent(tracking: ShipmentTracking, modifier: Modifier = Mod
             }
         }
 
-        // ── Route visualisation ───────────────────────────
+        // This card shows the truck's progress from pickup to delivery.
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(20.dp)) {
                 Text(
@@ -160,17 +175,33 @@ private fun TrackingContent(tracking: ShipmentTracking, modifier: Modifier = Mod
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
+
                 Spacer(modifier = Modifier.height(24.dp))
+
+                // The progress bar updates whenever the truck moves.
                 RouteProgressBar(progress = tracking.progress)
+
                 Spacer(modifier = Modifier.height(12.dp))
+
+                // I placed the pickup and delivery names at opposite ends.
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(tracking.pickupLocation, style = MaterialTheme.typography.labelMedium)
-                    Text(tracking.deliveryLocation, style = MaterialTheme.typography.labelMedium)
+                    Text(
+                        tracking.pickupLocation,
+                        style = MaterialTheme.typography.labelMedium
+                    )
+
+                    Text(
+                        tracking.deliveryLocation,
+                        style = MaterialTheme.typography.labelMedium
+                    )
                 }
+
                 Spacer(modifier = Modifier.height(16.dp))
+
+                // Convert the progress value from 0–1 into a percentage.
                 Text(
                     text = "${(tracking.progress * 100).toInt()}% of the route complete",
                     style = MaterialTheme.typography.bodyMedium,
@@ -179,9 +210,7 @@ private fun TrackingContent(tracking: ShipmentTracking, modifier: Modifier = Mod
             }
         }
 
-        // ── Coordinate readout ────────────────────────────
-        // Shows the raw data driving the animation. In M3 this whole
-        // card would be replaced by a real map centred on the truck.
+        // This card displays the truck's simulated GPS coordinates.
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
@@ -189,7 +218,10 @@ private fun TrackingContent(tracking: ShipmentTracking, modifier: Modifier = Mod
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
+
                 Spacer(modifier = Modifier.height(8.dp))
+
+                // I used let to display the coordinates only when available.
                 tracking.truckLocation?.let { loc ->
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
@@ -197,7 +229,10 @@ private fun TrackingContent(tracking: ShipmentTracking, modifier: Modifier = Mod
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary
                         )
+
                         Spacer(modifier = Modifier.size(8.dp))
+
+                        // Display latitude and longitude to four decimal places.
                         Text(
                             text = "Lat ${"%.4f".format(loc.latitude)}, " +
                                     "Lng ${"%.4f".format(loc.longitude)}",
@@ -210,11 +245,13 @@ private fun TrackingContent(tracking: ShipmentTracking, modifier: Modifier = Mod
     }
 }
 
-// Horizontal progress bar with a truck icon that slides along it.
-// animateFloatAsState smooths the 1.5-second jumps into continuous
-// movement — without it the truck would teleport.
+// This function displays an animated progress bar showing
+// how far the truck has travelled along its route.
 @Composable
 private fun RouteProgressBar(progress: Float) {
+
+    // I used animateFloatAsState to make the truck move smoothly
+    // instead of jumping whenever a new location is received.
     val animatedProgress by animateFloatAsState(
         targetValue = progress.coerceIn(0f, 1f),
         label = "truck_progress"
@@ -225,7 +262,8 @@ private fun RouteProgressBar(progress: Float) {
             .fillMaxWidth()
             .height(48.dp)
     ) {
-        // The grey track sits at the vertical centre of the box.
+
+        // This is the background of the progress bar.
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -236,7 +274,9 @@ private fun RouteProgressBar(progress: Float) {
                     shape = RoundedCornerShape(3.dp)
                 )
         )
-        // The filled portion grows to match progress.
+
+        // This section fills as the truck gets closer to its destination.
+        // I used animatedProgress to control how much of the bar is filled.
         Box(
             modifier = Modifier
                 .fillMaxWidth(animatedProgress)
@@ -247,9 +287,9 @@ private fun RouteProgressBar(progress: Float) {
                     shape = RoundedCornerShape(3.dp)
                 )
         )
-        // The truck icon sits at the leading edge of the filled bar.
-        // fillMaxWidth(animatedProgress) with CenterEnd aligns the icon
-        // at the right edge of that filled region.
+
+        // I used a truck icon to represent the current position.
+        // It moves towards the end of the bar as progress increases.
         Box(
             modifier = Modifier
                 .fillMaxWidth(animatedProgress)
@@ -274,8 +314,12 @@ private fun RouteProgressBar(progress: Float) {
     }
 }
 
+// This function displays the shipment status using different
+// colours depending on the current booking status.
 @Composable
 private fun StatusChip(status: BookingStatus) {
+
+    // I used different background colours to distinguish each status.
     val background = when (status) {
         BookingStatus.PENDING -> MaterialTheme.colorScheme.secondaryContainer
         BookingStatus.CONFIRMED -> MaterialTheme.colorScheme.primaryContainer
@@ -283,6 +327,8 @@ private fun StatusChip(status: BookingStatus) {
         BookingStatus.DELIVERED -> MaterialTheme.colorScheme.primaryContainer
         BookingStatus.CANCELLED -> MaterialTheme.colorScheme.errorContainer
     }
+
+    // These colours make sure the text is readable on each background.
     val foreground = when (status) {
         BookingStatus.PENDING -> MaterialTheme.colorScheme.onSecondaryContainer
         BookingStatus.CONFIRMED -> MaterialTheme.colorScheme.onPrimaryContainer
@@ -290,11 +336,21 @@ private fun StatusChip(status: BookingStatus) {
         BookingStatus.DELIVERED -> MaterialTheme.colorScheme.onPrimaryContainer
         BookingStatus.CANCELLED -> MaterialTheme.colorScheme.onErrorContainer
     }
-    Surface(shape = RoundedCornerShape(12.dp), color = background) {
+
+    // I used a rounded Surface to display the status as a small badge.
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = background
+    ) {
         Row(
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+            modifier = Modifier.padding(
+                horizontal = 10.dp,
+                vertical = 4.dp
+            ),
             verticalAlignment = Alignment.CenterVertically
         ) {
+
+            // Show a checkmark when the shipment has been delivered.
             if (status == BookingStatus.DELIVERED) {
                 Icon(
                     Icons.Filled.CheckCircle,
@@ -302,8 +358,10 @@ private fun StatusChip(status: BookingStatus) {
                     tint = foreground,
                     modifier = Modifier.size(14.dp)
                 )
+
                 Spacer(modifier = Modifier.size(4.dp))
             }
+
             Text(
                 text = status.label,
                 style = MaterialTheme.typography.labelSmall,

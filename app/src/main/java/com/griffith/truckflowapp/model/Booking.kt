@@ -1,9 +1,8 @@
+
 package com.griffith.truckflowapp.model
 
-// DashboardMetrics groups the four summary values displayed at the top
-// of the client screen. Keeping these values in one data class makes the
-// metric-card section easier to update when data is eventually loaded
-// from the existing TruckFlow web backend.
+// This data class is for storing the summary information displayed
+// on the client dashboard, such as active shipments and total spending.
 data class DashboardMetrics(
     val activeShipments: Int,
     val completedDeliveries: Int,
@@ -11,9 +10,8 @@ data class DashboardMetrics(
     val totalSpend: Double
 )
 
-// One row from the bookings list. Used by the dashboard's Recent Bookings
-// section and by the tracking feature, so both screens share a single
-// definition of what a booking looks like.
+// This data class is for storing the details of a booking.
+// I used it to display recent bookings on the client dashboard.
 data class RecentBooking(
     val id: String,
     val pickup: String,
@@ -22,9 +20,9 @@ data class RecentBooking(
     val pickupDate: String
 )
 
-// One status per booking. Kept in the model package because both the
-// dashboard and the tracking screen reference it — a duplicate enum in
-// each screen file would require translating between the two.
+// This enum class is for defining the different statuses a booking can have.
+// I kept it in the model package so both the dashboard and tracking screen
+// can use the same booking statuses.
 enum class BookingStatus(val label: String) {
     PENDING("Pending"),
     CONFIRMED("Confirmed"),
