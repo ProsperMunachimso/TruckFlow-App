@@ -83,6 +83,7 @@ private val sampleBookings = listOf(
 @Composable
 fun ClientTruckListScreen(
     onNavigateToCreateBooking: () -> Unit,
+    onNavigateToTrackShipment: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     // The Android Context is required to launch external apps and Activities from Compose button click handlers.
@@ -197,7 +198,7 @@ fun ClientTruckListScreen(
                 }
                 // This button is for the client to track shipments.
                 OutlinedButton(
-                    onClick = { /* M3: navigate to MyBookings */ },
+                    onClick = {onNavigateToTrackShipment("BK-ABC123")},
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Icon(Icons.Filled.TrackChanges, contentDescription = null)
@@ -305,7 +306,8 @@ fun ClientTruckListScreen(
                 )
             }
         } else {
-            items(visibleBookings) { booking -> RecentBookingCard(booking = booking) // This creates a reusable RecentBookingCard for each entry.
+            items(visibleBookings) { booking ->
+                RecentBookingCard(booking = booking, onTrack = onNavigateToTrackShipment) // This creates a reusable RecentBookingCard for each entry.
             }
         }
 
@@ -384,7 +386,7 @@ private fun MetricCard(
 // Route and pickup date are stacked underneath for easier reading on mobile.
 // The Track action is visible but currently has no implemented navigation.
 @Composable
-private fun RecentBookingCard(booking: RecentBooking) {
+private fun RecentBookingCard(booking: RecentBooking, onTrack: (String) -> Unit) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(14.dp)) {
             // Place the icon and numeric value on opposite sides of the card.
@@ -415,7 +417,7 @@ private fun RecentBookingCard(booking: RecentBooking) {
             )
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedButton(
-                onClick = { },
+                onClick = {onTrack(booking.id) },
                 modifier = Modifier.align(Alignment.End)
             ) {
                 Text("Track")
@@ -469,6 +471,6 @@ private fun StatusChip(status: BookingStatus) {
 @Composable
 private fun ClientTruckListScreenPreview() {
     TruckFlowAppTheme {
-        ClientTruckListScreen(onNavigateToCreateBooking = {})
+        ClientTruckListScreen(onNavigateToCreateBooking = {}, onNavigateToTrackShipment = {})
     }
 }

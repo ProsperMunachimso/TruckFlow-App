@@ -18,5 +18,6 @@ data class ShipmentTracking(
     val pickupLocation: String,
     val deliveryLocation: String,
     val status: BookingStatus,
-    val truckLocation: TruckLocation?
+    val truckLocation: TruckLocation?,
+    val progress: Float = 0f
 )

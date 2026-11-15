@@ -18,6 +18,9 @@ import com.griffith.truckflowapp.screens.ClientTruckListScreen
 import com.griffith.truckflowapp.screens.RoleSelectionScreen
 import com.griffith.truckflowapp.ui.theme.TruckFlowAppTheme
 import com.griffith.truckflowapp.screens.CreateBookingScreen
+import com.griffith.truckflowapp.screens.TrackShipmentScreen
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 
  /* MainActivity is the only Activity in the app apart from BookingDetailsActivity.
  I used a single-Activity architecture because Compose Navigation is designed
@@ -69,6 +72,10 @@ fun TruckFlowApp(modifier: Modifier = Modifier) {
             ClientTruckListScreen(
                 onNavigateToCreateBooking = { //Kept the callback as a parameter (rather than passing navController) to preserve the hoisting pattern made with RoleSelectionScreen.
                     navController.navigate(NavRoutes.CREATE_BOOKING)
+                },
+                onNavigateToTrackShipment = { // I used the same hoisting pattern here, the screen reports which booking
+                    // the user wants to track, MainActivity decides the route.
+                    bookingId -> navController.navigate(NavRoutes.trackShipmentRoute(bookingId))
                 }
             )
         }
@@ -76,6 +83,22 @@ fun TruckFlowApp(modifier: Modifier = Modifier) {
         // Booking form. popBackStack() returns to whichever screen was on top before navigation
         composable(NavRoutes.CREATE_BOOKING) {
             CreateBookingScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        composable(
+            route = NavRoutes.TRACK_SHIPMENT_PATTERN,
+            arguments = listOf(
+                navArgument(NavRoutes.TRACK_SHIPMENT_ARG) {
+                    type = NavType.StringType
+                }
+            )
+        ) { backStackEntry ->
+            val bookingId = backStackEntry.arguments
+                ?.getString(NavRoutes.TRACK_SHIPMENT_ARG)
+                ?: ""  // I used this so it is never empty, but avoids a crash if the route is malformed
+            TrackShipmentScreen(
+                bookingId = bookingId,
                 onNavigateBack = { navController.popBackStack() }
             )
         }
