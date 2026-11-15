@@ -54,33 +54,9 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
-// DashboardMetrics groups the four summary values displayed at the top of the client screen.
-// Keeping these values in one data class makes the metric-card section easier to update
-// when data is eventually loaded from the existing TruckFlow web backend.
-
-data class DashboardMetrics(
-    val activeShipments: Int,
-    val completedDeliveries: Int,
-    val labourRequestsPending: Int,
-    val totalSpend: Double
-)
-// RecentBooking represents the information needed for one booking card.
-data class RecentBooking(
-    val id: String,
-    val pickup: String,
-    val delivery: String,
-    val status: BookingStatus,
-    val pickupDate: String
-)
-// I used an enum for BookingStatus so the UI works with a fixed set of valid statuses
-// rather than relying on manually typed status strings.
-enum class BookingStatus(val label: String) {
-    PENDING("Pending"),
-    CONFIRMED("Confirmed"),
-    IN_TRANSIT("In Transit"),
-    DELIVERED("Delivered"),
-    CANCELLED("Cancelled")
-}
+import com.griffith.truckflowapp.model.BookingStatus
+import com.griffith.truckflowapp.model.DashboardMetrics
+import com.griffith.truckflowapp.model.RecentBooking
 
 // Temporary dashboard figures used to test the interface without a server connection.
 // These are sample values, not totals calculated from the bookings shown below.
