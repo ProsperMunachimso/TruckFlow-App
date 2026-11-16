@@ -28,7 +28,6 @@ import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.TrackChanges
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -38,8 +37,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -56,6 +53,7 @@ import com.griffith.truckflowapp.model.BookingStatus
 import com.griffith.truckflowapp.model.DashboardMetrics
 import com.griffith.truckflowapp.model.RecentBooking
 import com.griffith.truckflowapp.screens.components.BookingStatusChip
+import com.griffith.truckflowapp.screens.components.MetricCard
 
 // Temporary dashboard figures used to test the interface without a server connection.
 // These are sample values, not totals calculated from the bookings shown below.
@@ -321,62 +319,6 @@ fun ClientTruckListScreen(
             ) {
                 Text("View All Bookings")
             }
-        }
-    }
-}
-
-// Reusable dashboard metric component. Parameters allow the same layout to
-// display shipments, deliveries, labour requests, or spending without repeating
-// the Card implementation. The caller controls width using the modifier parameter.
-// The card uses theme surface colours so it adapts to light and dark modes.
-@Composable
-private fun MetricCard(
-    icon: ImageVector,
-    value: String,
-    label: String,
-    iconTint: Color,
-    caption: String,
-    modifier: Modifier = Modifier
-) {
-    // Card provides a Material container, its background uses surfaceVariant
-    // to distinguish the statistic from the surrounding dashboard.
-    Card(
-        modifier = modifier,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
-    ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            // Place the icon and numeric value on opposite sides of the card.
-            // SpaceBetween uses the available width rather than fixed offsets.
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = iconTint,
-                    modifier = Modifier.size(28.dp)
-                )
-                Text(
-                    text = value,
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodySmall,
-                fontWeight = FontWeight.Medium
-            )
-            Text(
-                text = caption,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
         }
     }
 }
