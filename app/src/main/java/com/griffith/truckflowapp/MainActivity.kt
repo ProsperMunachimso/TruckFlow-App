@@ -22,6 +22,8 @@ import com.griffith.truckflowapp.screens.MyBookingsScreen
 import com.griffith.truckflowapp.screens.RoleSelectionScreen
 import com.griffith.truckflowapp.screens.TrackShipmentScreen
 import com.griffith.truckflowapp.ui.theme.TruckFlowAppTheme
+import com.griffith.truckflowapp.screens.TruckOwnerDashboardScreen
+import androidx.compose.ui.platform.LocalContext
 
 // This class is for starting the application and setting up the main layout.
 // I used a single Activity with Compose Navigation to manage the different screens.
@@ -55,7 +57,7 @@ fun TruckFlowApp(modifier: Modifier = Modifier) {
 
     // I used rememberNavController to manage navigation and the back stack.
     val navController = rememberNavController()
-
+    val context = LocalContext.current
     // NavHost displays the current screen based on its route.
     // The role selection screen is the first screen shown when the app opens.
     NavHost(
@@ -68,16 +70,26 @@ fun TruckFlowApp(modifier: Modifier = Modifier) {
         composable(NavRoutes.ROLE_SELECTION) {
             RoleSelectionScreen(
                 onRoleSelected = { role ->
+                    // I used when to navigate based on the selected role.
+                    when (role) {
+                        // Opens the Client dashboard.
+                        UserRole.CLIENT -> navController.navigate(NavRoutes.CLIENT_TRUCKS)
+                        // Opens the Truck Owner dashboard.
+                        UserRole.OWNER -> navController.navigate(NavRoutes.OWNER_DASHBOARD)
 
-                    // For now, only the Client role navigates to its dashboard.
-                    if (role == UserRole.CLIENT) {
-                        navController.navigate(NavRoutes.CLIENT_TRUCKS)
+                        // I used a Toast message temporarily because the Labourer dashboard is not implemented yet.
+                        UserRole.LABOURER -> {
+                            android.widget.Toast.makeText(
+                                context,
+                                "Labourer dashboard coming soon",
+                                android.widget.Toast.LENGTH_SHORT
+                            ).show()
+                        }
                     }
-
-                    // Truck Owner and Labourer navigation will be added later.
                 }
             )
         }
+
 
         // This route displays the client dashboard.
         composable(NavRoutes.CLIENT_TRUCKS) {
@@ -159,5 +171,46 @@ fun TruckFlowApp(modifier: Modifier = Modifier) {
                 }
             )
         }
+
+        // This route opens the Truck Owner dashboard.
+        composable(NavRoutes.OWNER_DASHBOARD) {
+            TruckOwnerDashboardScreen(
+                // This takes the user back to the previous screen.
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+
+                // I used Toast messages temporarily because these
+                // screens have not been implemented yet.
+
+                // Displays a message when Add New Truck is clicked.
+                onNavigateToAddTruck = {
+                    android.widget.Toast.makeText(
+                        context,
+                        "Add Truck screen coming next",
+                        android.widget.Toast.LENGTH_SHORT
+                    ).show()
+                },
+
+                // Displays a message when View My Trucks is clicked.
+                onNavigateToMyTrucks = {
+                    android.widget.Toast.makeText(
+                        context,
+                        "My Trucks screen coming soon",
+                        android.widget.Toast.LENGTH_SHORT
+                    ).show()
+                },
+
+                // Displays a message when Booking Requests is clicked.
+                onNavigateToBookingRequests = {
+                    android.widget.Toast.makeText(
+                        context,
+                        "Booking Requests screen coming soon",
+                        android.widget.Toast.LENGTH_SHORT
+                    ).show()
+                }
+            )
+        }
+
     }
 }

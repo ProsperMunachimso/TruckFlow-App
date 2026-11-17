@@ -5,6 +5,7 @@ object NavRoutes {
     const val CLIENT_TRUCKS = "client_trucks"
     const val CREATE_BOOKING = "create_booking"
     const val MY_BOOKINGS = "my_bookings"
+    const val OWNER_DASHBOARD = "owner_dashboard"
 
     // Added a route with a booking ID path argument. The pattern is used by NavHost,
     const val TRACK_SHIPMENT_PATTERN = "track_shipment/{bookingId}"
